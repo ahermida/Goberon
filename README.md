@@ -83,7 +83,7 @@ RethinkDB tables.
 
 Using `$ goberon drop` will drop all course data tables
 
-##Acknowledgments
+## Acknowledgments
 
 Can't build this without a shoutout to the original Oberon authors:
 * David Siah [@dsiah](https://github.com/dsiah)
