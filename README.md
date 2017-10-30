@@ -40,16 +40,41 @@ export PATH=$PATH:$GOPATH/bin
 
 This CLI is currently only tested against MacOS and the Linux Subsystem for Windows.
 
-### RethinkDB setup
+### RethinkDB Setup
 
 This project requires a RethinkDB instance to be running. If you don't have it
 installed yet, you can see the [RethinkDB installation guide](https://rethinkdb.com/docs/install/)
-for your system.
+for your system. If you have Homebrew on a mac, install with `brew update && brew install rethinkdb`.
 
 Once you have it installed, you must set the "RdbAddress" value within
 the "Network" variable in `Goberon/config/config.go` to the port that rethinkdb is
 open on.
 
-### Request setup
+### Request Setup
 
-Go into `Goberon/config/config.go`, set
+Go into `Goberon/config/secret.go`, edit out the comment and place the data for the
+POST request to the registrar (set the cookie, body, headers, and URL). If you
+don't know how to get this data, fear not.
+
+You can alternatively navigate to the registrar HTML page with all of the courses, save
+the HTML page with all of the courses into the Goberon directory with the name `courses.html`.
+
+## Getting Started
+
+Once you've run `go get github.com/ahermida/github.com` and you're in the Goberon
+directory, you can run `go install`.
+
+This will setup the command: `goberon`
+
+### Fetching Data
+
+Running `$ goberon fetch` will download the course data. It usually takes ~4mins.
+
+### Indexing Data
+
+Using `$ goberon index` will build course data, and write it into appropriate
+RethinkDB tables.
+
+###  Data
+
+Using `$ goberon drop` will drop all course data tables
