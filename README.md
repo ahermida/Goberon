@@ -61,7 +61,7 @@ the HTML page with all of the courses into the Goberon directory with the name `
 
 ## Getting Started
 
-Once you've run `go get github.com/ahermida/github.com` and you're in the Goberon
+Once you've run `go get github.com/ahermida/Goberon` and you're in the Goberon
 directory, you can run `go install`.
 
 This will setup the command: `goberon`
