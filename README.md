@@ -68,13 +68,24 @@ This will setup the command: `goberon`
 
 ### Fetching Data
 
-Running `$ goberon fetch` will download the course data. It usually takes ~4mins.
+Running $`goberon` will load a help menu.
+
+### Fetching Data
+
+Running $`goberon fetch` will download the course data. It usually takes ~4mins.
 
 ### Indexing Data
 
-Using `$ goberon index` will build course data, and write it into appropriate
+Using $`goberon index` will build course data, and write it into appropriate
 RethinkDB tables.
 
 ###  Data
 
-Using `$ goberon drop` will drop all course data tables
+Using $`goberon drop` will drop all course data tables
+
+
+##Acknowledgments
+
+Can't build this without a shoutout to the original Oberon authors:
+* David Siah [@dsiah](https://github.com/dsiah)
+* Kent Wu [@kentkwu](https://github.com/kentkwu)
