@@ -68,21 +68,20 @@ This will setup the command: `goberon`
 
 ### Fetching Data
 
-Running $`goberon` will load a help menu.
+Running `$ goberon` will load a help menu.
 
 ### Fetching Data
 
-Running $`goberon fetch` will download the course data. It usually takes ~4mins.
+Running `$ goberon fetch` will download the course data. It usually takes ~4mins.
 
 ### Indexing Data
 
-Using $`goberon index` will build course data, and write it into appropriate
+Using `$ goberon index` will build course data, and write it into appropriate
 RethinkDB tables.
 
 ###  Data
 
-Using $`goberon drop` will drop all course data tables
-
+Using `$ goberon drop` will drop all course data tables
 
 ##Acknowledgments
 
