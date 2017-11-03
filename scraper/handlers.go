@@ -32,7 +32,9 @@ func makeSchedule(dateTimePtr string) *Schedule {
 				sched.StartTime = startT.Format("15:04")
 				sched.EndTime = endT.Format("15:04")
 				sched.Days = dateTime[:dtl - 26]
-		}
+		} else {
+        sched.StartTime, sched.EndTime, sched.Days = "TBA", "TBA", "TBA"
+    }
 
 		return sched
 }
@@ -211,7 +213,7 @@ func handleDateLoc(root soup.Root) []*Schedule {
 		for i, ptr := range parent.FindAll("b") {
 				schedData := ptr.FindNextSibling().Pointer.Data
 				prev, sch := makeSchedulePrev(schedData)
-				schedules[i].Location = prev
+				schedules[i].Location = emptyToTBA(prev)
 				if sch != nil {
 
 						// adds schedule to schedules
@@ -253,13 +255,6 @@ func handleInstructor(root soup.Root) []*Instructor {
             continue
         }
 				teachers = append(teachers, t)
-
-        if Instructors[t.Id] == nil {
-            t.Sections = make([]string, 0)
-
-            //keep track of instructors externally
-            Instructors[t.Id] = t
-        }
 		}
 
 		return teachers
@@ -312,4 +307,11 @@ func handleAttributes(root soup.Root) []string {
 		cleaned := strings.Replace(strings.Replace(data, "\n", " ", -1), "&nbsp;", " ", -1)
 		split := strings.Split(strings.Trim(cleaned, " "), " ")
 		return split
+}
+
+func emptyToTBA(locTime string) string {
+    if locTime == "" {
+      return "TBA"
+    }
+    return locTime
 }

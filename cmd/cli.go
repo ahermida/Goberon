@@ -5,6 +5,7 @@ import (
 		"fmt"
 		"log"
 		"os"
+		"time"
 
 		"github.com/ahermida/Goberon/scraper"
 )
@@ -35,6 +36,7 @@ func (cli *CLI) Run() {
 		fetchCmd := flag.NewFlagSet("fetch", flag.ExitOnError)
 		indexCmd := flag.NewFlagSet("index", flag.ExitOnError)
 		dropCmd := flag.NewFlagSet("drop", flag.ExitOnError)
+		loopCmd := flag.NewFlagSet("loop", flag.ExitOnError)
 
 		switch os.Args[1] {
 
@@ -50,6 +52,11 @@ func (cli *CLI) Run() {
 				}
 		case "drop":
 				err := dropCmd.Parse(os.Args[2:])
+				if err != nil {
+						log.Panic(err)
+				}
+		case "loop":
+				err := loopCmd.Parse(os.Args[2:])
 				if err != nil {
 						log.Panic(err)
 				}
@@ -73,6 +80,11 @@ func (cli *CLI) Run() {
 		// run drop function
 		if dropCmd.Parsed() {
 				cli.drop()
+		}
+
+		// run loop function
+		if loopCmd.Parsed() {
+				cli.loop()
 		}
 
 }
@@ -110,4 +122,15 @@ func (c *CLI) drop() {
 			log.Panic(err)
 		}
 		fmt.Println("Drop complete.")
+}
+
+// Index courses into database and build index UPDATES EVERY 30 MINUTES
+func (c *CLI) loop() {
+		for {
+
+				//get courses and index every hour
+				c.fetch()
+				c.index()
+	      time.Sleep(30 * time.Minute)
+	  }
 }

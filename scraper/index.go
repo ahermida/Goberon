@@ -23,17 +23,14 @@ import (
 )
 
 var (
-		Instructors map[string]*Instructor
-		Courses map[string]*Course
-		Departments map[string]*Department
-		CI map[string]*Section
+		Registrar *CourseData
 )
 
-func init() {
-		Instructors = map[string]*Instructor{}
-	 	Courses	= map[string]*Course{}
-		Departments = map[string]*Department{}
-		CI = map[string]*Section{}
+type CourseData struct {
+		Instructors map[string]*Instructor
+		Courses 		map[string]*Course
+		Departments map[string]*Department
+		CI 					map[string]*Section
 }
 
 // Go ahead and index the registry of data
@@ -47,35 +44,34 @@ func Index() (int, error) {
 		doc := soup.HTMLParse(string(coursesHTML))
 		captions := doc.FindAll("caption")
 		tables := doc.FindAll("table", "class", "datadisplaytable")
-		start(captions, tables)
-		Commit()
+		registrar := start(captions, tables)
+		Commit(registrar)
 		return 0, nil
 }
 
-func Commit() {
+func Commit(reg *CourseData) {
 
 		//Index all data into empty DB
-		WriteSections(CI)
-		WriteCourses(Courses)
-		WriteInstructors(Instructors)
-		WriteDepartments(Departments)
+		WriteSections(reg.CI)
+		WriteCourses(reg.Courses)
+		WriteInstructors(reg.Instructors)
+		WriteDepartments(reg.Departments)
 }
 
 
 // Every department has a caption tag followed by a data table body - so we start here
-func start(captions, tables []soup.Root) error {
-		majors := map[string]bool{}
+func start(captions, tables []soup.Root) *CourseData {
 
-		// pass over map of captions to get list of majors without parsing data just yet
-		for _, caption := range captions {
-				if !majors[caption.Text()] {
-						majors[caption.Text()] = true
-				}
+		// keep the current active registrar exported
+		Registrar = &CourseData{
+				CI: 				  map[string]*Section{},
+				Instructors:  map[string]*Instructor{},
+				Courses: 		  map[string]*Course{},
+				Departments:  map[string]*Department{},
 		}
 
-		// update ourselves on Number of Majors
-		fmt.Printf("Found %v departments", len(majors))
-		var total = 0
+		total := 0
+
 		// over captions again, this time traversing each caption's neighbor
 		for _, table := range tables {
 
@@ -86,23 +82,30 @@ func start(captions, tables []soup.Root) error {
 				//                  \
 				//                    -> <tr> <tr> <tr> ...
 				if tr := table.Find("tr"); tr.Error == nil {
-						i := handleBody(tr, CI)
-						total += i
+
+						//writes course data into registrar passed in
+						total += handleBody(tr, Registrar.CI)
 				}
 		}
 
 		//By now, weve seen all the courses so let's start building other tables
-	  for _, v := range CI {
+	  for _, v := range Registrar.CI {
 
 				//build instructors from sections
 				for _, t := range v.Instructors {
+
+						//if instructor doesn't exist, make em
+						if Registrar.Instructors[t.Id] == nil {
+								t.Sections = make([]string, 0)
+								Registrar.Instructors[t.Id] = t
+						}
 						v.Instructor = append(v.Instructor, t.Name)
-						Instructors[t.Id].Sections = append(Instructors[t.Id].Sections, v.CRN)
+						Registrar.Instructors[t.Id].Sections = append(Registrar.Instructors[t.Id].Sections, v.CRN)
 				}
 
 				//build department if not exists
-				if Departments[v.Department] == nil {
-						Departments[v.Department] = &Department{
+				if Registrar.Departments[v.Department] == nil {
+						Registrar.Departments[v.Department] = &Department{
 								Name: v.Department,
 								Courses: make([]string, 0),
 						}
@@ -112,8 +115,8 @@ func start(captions, tables []soup.Root) error {
 				cid := v.Department + v.Class
 
 				//build course or add to it
-				if Courses[cid] == nil {
-						Courses[cid] = &Course{
+				if Registrar.Courses[cid] == nil {
+						Registrar.Courses[cid] = &Course{
 								ID: cid,
 								Name: v.Name,
 								Class: v.Class,
@@ -122,15 +125,13 @@ func start(captions, tables []soup.Root) error {
 						}
 
 						//add course to Department
-						Departments[v.Department].Courses = append(Departments[v.Department].Courses, cid)
+						Registrar.Departments[v.Department].Courses = append(Registrar.Departments[v.Department].Courses, cid)
 				} else {
-						Courses[cid].Sections = append(Courses[cid].Sections, v.CRN)
+						Registrar.Courses[cid].Sections = append(Registrar.Courses[cid].Sections, v.CRN)
 				}
 		}
 
-		fmt.Printf("\nTotal Courses Indexed: %d\n", total)
-
-		return nil
+		return Registrar
 }
 
 // Handles the <tr>s within <tbody>, must come in pairs of two
