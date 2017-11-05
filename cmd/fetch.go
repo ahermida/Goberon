@@ -17,6 +17,9 @@ func keepMeSane() {
 
   //seconds to complete request on avg
   i := 127
+  if config.CatSecret != nil {
+      i += 67
+  }
   bar := pb.New(i)
   bar.SetMaxWidth(80)
   bar.Start()
@@ -67,6 +70,54 @@ func Fetch() error {
 
     // Give ourselves some filestats
     fi, _ := f.Stat()
-    fmt.Printf("\n\nDownload Completed - %vMB long\n", fi.Size() / 1000000)
+    fmt.Printf("\n\nCourse Download Completed - %vMB long\n", fi.Size() / 1000000)
+
+    //go ahead and complete the Catalog download if we can
+    if config.CatSecret != nil {
+        err := FetchCat()
+        return err
+    }
+
+    return nil
+}
+
+func FetchCat() error {
+    client := &http.Client{}
+    data := strings.NewReader(config.CatSecret.Data)
+
+    // create request
+    req, errCreating := http.NewRequest("POST", config.CatSecret.URL, data)
+    if errCreating != nil {
+        return errCreating
+    }
+
+    // configure it
+    req.Header = config.CatSecret.Header
+    req.AddCookie(config.CatSecret.Cookie)
+
+
+    // Let ourselves know that we started
+    fmt.Println("Fetching data")
+
+    // Send request
+    resp, errSending := client.Do(req);
+    if errSending != nil {
+        return errSending
+    }
+
+    // Get file object if there's none
+    f, errFile := os.Create(config.Local.CatFN)
+    if errFile != nil {
+        return errFile
+    }
+
+    defer f.Close()
+
+    // Write data to file
+    io.Copy(f, resp.Body)
+
+    // Give ourselves some filestats
+    fi, _ := f.Stat()
+    fmt.Printf("\n\nCatalog Download Completed - %vMB long\n", fi.Size() / 1000000)
     return nil
 }

@@ -12,9 +12,11 @@ import (
 var Session *r.Session
 var DB r.Term
 var tables []string
+var primaries []string
 
 func init() {
     tables = []string{"sections", "teachers", "courses", "departments"}
+    primaries = []string{"crn", "id", "id", "name"}
 }
 
 //not running this in init to prevent slow startup
@@ -67,8 +69,11 @@ func dropTables(db r.Term, session *r.Session) error {
 }
 
 func createTables(db r.Term, session *r.Session) error {
-    for _, t := range tables {
-        _, err := DB.TableCreate(t).Run(session)
+    for i, t := range tables {
+        opts := r.TableCreateOpts{
+            PrimaryKey: primaries[i],
+        }
+        _, err := DB.TableCreate(t, opts).Run(session)
         if err != nil {
           return err
         }

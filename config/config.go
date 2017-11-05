@@ -12,6 +12,7 @@ var (
     }
     Local = &LocalConfig{
       DefaultFN: os.Getenv("GOPATH") + "/src/github.com/ahermida/Goberon/courses.html",
+      CatFN: os.Getenv("GOPATH") + "/src/github.com/ahermida/Goberon/catalog.html",
     }
 )
 
@@ -22,4 +23,5 @@ type NetworkConfig struct {
 
 type LocalConfig struct {
     DefaultFN string //default filename
+    CatFN string     //filename for catalog (if it's set)
 }

@@ -14,6 +14,7 @@ var (
     URL: "http://example.com",
     Data: "Hello!",
   }
+  CatSecret *SecretConfig
 )
 
 /*

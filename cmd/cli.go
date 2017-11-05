@@ -93,10 +93,14 @@ func (cli *CLI) Run() {
 func (c *CLI) fetch() {
 		err := Fetch();
 		if err != nil {
-			fmt.Println("\n\nFor fetch to work you must set up config.Secret to have proper request data.")
-			fmt.Println("You also might want to double check that your internet connection is working.")
-			fmt.Println("\nERROR: ")
-			log.Panic(err)
+				fmt.Println("\n\nFor fetch to work you must set up config.Secret to have proper request data.")
+				fmt.Println("You also might want to double check that your internet connection is working.")
+				fmt.Println("\nERROR: ")
+				log.Panic(err)
+		}
+		err = FetchCat();
+		if err != nil {
+				log.Panic(err)
 		}
 }
 
@@ -104,10 +108,10 @@ func (c *CLI) fetch() {
 func (c *CLI) index() {
 		_, err := scraper.Index()
 		if err != nil {
-			fmt.Println("\n\nFor index to work you must first run fetch.")
-			fmt.Println("You also might want to double check that your RethinDB instance is running.")
-			fmt.Println("\nERROR: ")
-			log.Panic(err)
+				fmt.Println("\n\nFor index to work you must first run fetch.")
+				fmt.Println("You also might want to double check that your RethinDB instance is running.")
+				fmt.Println("\nERROR: ")
+				log.Panic(err)
 		}
 }
 
@@ -116,10 +120,10 @@ func (c *CLI) drop() {
 		fmt.Println("Dropping tables...")
 	  err := scraper.Drop()
 		if err != nil {
-			fmt.Println("\n\nFor drop to work you must have a database connection.")
-			fmt.Println("You might want to double check that your RethinDB instance is running.")
-			fmt.Println("\nERROR: ")
-			log.Panic(err)
+				fmt.Println("\n\nFor drop to work you must have a database connection.")
+				fmt.Println("You might want to double check that your RethinDB instance is running.")
+				fmt.Println("\nERROR: ")
+				log.Panic(err)
 		}
 		fmt.Println("Drop complete.")
 }
