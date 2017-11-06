@@ -98,10 +98,6 @@ func (c *CLI) fetch() {
 				fmt.Println("\nERROR: ")
 				log.Panic(err)
 		}
-		err = FetchCat();
-		if err != nil {
-				log.Panic(err)
-		}
 }
 
 // Index courses into database and build index

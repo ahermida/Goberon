@@ -42,9 +42,12 @@ func Index() (int, error) {
 		}
 		coursesHTML, _ := ioutil.ReadFile(config.Local.DefaultFN)
 		doc := soup.HTMLParse(string(coursesHTML))
-		captions := doc.FindAll("caption")
 		tables := doc.FindAll("table", "class", "datadisplaytable")
-		registrar := start(captions, tables)
+		registrar := start(tables)
+		if config.CatSecret != nil {
+				cat := handleCatalog()
+				indexCatalog(cat, registrar)
+		}
 		Commit(registrar)
 		return 0, nil
 }
@@ -60,7 +63,7 @@ func Commit(reg *CourseData) {
 
 
 // Every department has a caption tag followed by a data table body - so we start here
-func start(captions, tables []soup.Root) *CourseData {
+func start(tables []soup.Root) *CourseData {
 
 		// keep the current active registrar exported
 		Registrar = &CourseData{
@@ -72,7 +75,7 @@ func start(captions, tables []soup.Root) *CourseData {
 
 		total := 0
 
-		// over captions again, this time traversing each caption's neighbor
+		// go over tables, extracting data as we can
 		for _, table := range tables {
 
 				// for each table found
@@ -172,4 +175,38 @@ func handleBody(root soup.Root, ci map[string]*Section) int {
 		}
 
 		return i
+}
+
+// parse through the catalog, writing different sections to CourseData
+func handleCatalog() []*CatalogData{
+		catHTML, _ := ioutil.ReadFile(config.Local.CatFN)
+		doc := soup.HTMLParse(string(catHTML))
+		tables := doc.FindAll("table", "class", "datadisplaytable")
+		li := make([]*CatalogData, 0)
+		for _, table := range tables {
+				if tr := table.Find("tr"); tr.Error == nil {
+						for _, c := range handleCatBody(tr) {
+								li = append(li, c)
+						}
+				}
+		}
+
+		//give em what they NEED
+		return li
+}
+
+// write course data to catalog -- Catalog gives us more than are offered any given semester
+func indexCatalog(cat []*CatalogData, cd *CourseData) {
+		for _, c := range cat {
+				if cd.Courses[c.Course] != nil {
+
+						//apply to course
+						cd.Courses[c.Course].Description = c.Description
+						cd.Courses[c.Course].Credits = c.Credits
+						for _, s := range cd.Courses[c.Course].Sections {
+								cd.CI[s].Description = c.Description
+								cd.CI[s].Credits = c.Credits
+						}
+				}
+		}
 }

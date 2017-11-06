@@ -15,19 +15,23 @@ type Section struct {
     Comment       string         `gorethink:"comment"`       //Learn all about Linked Lists!
     Section       string         `gorethink:"section"`       //001
     Class         string         `gorethink:"class"`         //1052
+    Credits       string         `gorethink:"credits"`       //3.00
     Enrolled      int            `gorethink:"enrolled"`      //07
     Size          int            `gorethink:"size"`          //30
     Department    string         `gorethink:"department"`    //CSC
+    Description   string         `gorethink:"description"`   //Redundant description data, but we're only dealing w 4MB
     Schedule      []*Schedule    `gorethink:"schedule"`      //[{10:30, 11:45, MWF, Mendel G86}]
 }
 
 // 1052 is taught by plenty of teachers
 type Course struct {
-    ID          string     `gorethink:"id,omitempty"` //Department+Class (should be unique)
-    Department  string     `gorethink:"department"`
-    Name        string     `gorethink:"name"`
-    Class       string     `gorethink:"class"`
-    Sections    []string   `gorethink:"sections"`
+    ID           string     `gorethink:"id,omitempty"` //Department+Class (should be unique)
+    Department   string     `gorethink:"department"`
+    Name         string     `gorethink:"name"`
+    Credits      string     `gorethink:"credits"`
+    Description  string     `gorethink:"description"`
+    Class        string     `gorethink:"class"`
+    Sections     []string   `gorethink:"sections"`
 
 }
 
@@ -35,7 +39,7 @@ type Course struct {
 type Instructor struct {
     Name      string     `gorethink:"name"`
     Id        string     `gorethink:"id"`
-    Sections    []string   `gorethink:"sections"`
+    Sections  []string   `gorethink:"sections"`
 }
 
 // Departments can have many teachers, but teachers don't always belong to a department
