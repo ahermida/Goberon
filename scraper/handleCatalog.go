@@ -52,7 +52,7 @@ func handleCatDetails(root soup.Root) (string, string) {
     description := ptr.FindPrevSibling()
     ptr = ptr.FindNextElementSibling()
     credits := ptr.FindNextSibling()
-    return clean(description.Pointer.Data), clean(strings.Split(credits.Pointer.Data, " ")[0])
+    return clean(description.Pointer.Data), strings.Split(clean(credits.Pointer.Data), " ")[0]
 }
 
 func clean(str string) string {

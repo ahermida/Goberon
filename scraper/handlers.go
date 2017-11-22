@@ -8,6 +8,7 @@ import (
     "bytes"
     "errors"
     "strconv"
+    "fmt"
     "time"
 
     "github.com/anaskhan96/soup"
@@ -24,9 +25,9 @@ func makeSchedule(dateTimePtr string) *Schedule {
 		tba := strings.HasPrefix(dateTime, "TBA")
 
 		//treat TBA strings differently
-		if !tba && dtl > 0 {
-
-				// startTime and endTime will always come at the same index
+		if !tba && dtl > 26 {
+      
+        // startTime and endTime will always come at the same index
 				startT, _ := time.Parse("03:04 pm", dateTime[dtl - 20: dtl - 12])
 				endT, _ := time.Parse("03:04 pm", dateTime[dtl - 8: dtl])
 				sched.StartTime = startT.Format("15:04")
@@ -44,8 +45,8 @@ func makeSchedulePrev(schedPtr string) (string, *Schedule) {
 
 		// since the line starts with the previous schedule's data, this is a bit tricky
 		// finding the index of the start of the new schedule from the back
-		splitSched := strings.Split(strings.Replace(schedPtr, "\n", " ", -1), " ")
-		var index int
+		splitSched := strings.Split(clean(schedPtr), " ")
+		index := 0
 		for i, str := range splitSched {
 				if str == "from" {
 					index = strings.Index(schedPtr, splitSched[i - 1])
@@ -64,7 +65,7 @@ func makeSchedulePrev(schedPtr string) (string, *Schedule) {
 				prev := schedPtr[:index - 1]
 
 				// splits the schedule string apart from sched location
-				secondSched := strings.Trim(schedPtr[index:], "\n\r ")
+				secondSched := strings.Trim(clean(schedPtr[index:]), "\n\r ")
 				sched := makeSchedule(secondSched)
 
 				// adds it to list of schedules
@@ -84,7 +85,7 @@ func handleHead(root soup.Root) (*Section, error) {
 
 		// a.text would be something like ECE 9940 - 001
 		// split data into [DeptName, CourseNum, -, Section]
-		courseInfo := strings.Split(a.Text(), " ")
+		courseInfo := strings.Split(clean(a.Text()), " ")
 
 		// move along to dirtier data:
 		// Art & Culture Exp Learn Com CRN: 33914 Enrollment: FULL 17 students.
@@ -94,26 +95,65 @@ func handleHead(root soup.Root) (*Section, error) {
 
 		//reset a
 		a = soup.Root{el, el.Data, nil}
-		rawMeta := el.Data
-		if len(rawMeta) < 5 {
-				return nil, errors.New("Can't parse an empty string")
-		}
 
-		//extract all that precious metadata
-		name, crn, enrolled, size := extractMetadata(rawMeta)
+    // "b" is what we get when a class is full, so treat that differently
+    if el.Data == "b" {
+      name, crn, enrolled, size := extractMetadataFull(a)
 
-		//setup section, make attributes too
-		section := &Section{
-				CRN: crn,
-				Name: name,
-				Section: courseInfo[3],
-				Enrolled: enrolled,
-				Size: size,
-				Class: courseInfo[1],
-				Department: courseInfo[0],
-		}
+      //setup section, make attributes too
+      section := &Section{
+          CRN: crn,
+          Name: name,
+          Section: courseInfo[3],
+          Enrolled: enrolled,
+          Size: size,
+          Class: courseInfo[1],
+          Department: courseInfo[0],
+      }
+      return section, nil
 
-		return section, nil
+    } else {
+      rawMeta := el.Data
+      if len(rawMeta) < 5 {
+          return nil, errors.New("Can't parse an empty string")
+      }
+
+      //extract all that precious metadata
+      name, crn, enrolled, size := extractMetadata(rawMeta)
+
+      //setup section, make attributes too
+      section := &Section{
+          CRN: crn,
+          Name: name,
+          Section: courseInfo[3],
+          Enrolled: enrolled,
+          Size: size,
+          Class: courseInfo[1],
+          Department: courseInfo[0],
+      }
+
+      return section, nil
+    }
+}
+
+//taking the last a, we can gather the class size and other relevant data
+//NOTE: refactor enrollment CRN, name gathering into 1 func
+func extractMetadataFull(root soup.Root) (name, crn string, enrolled, size int) {
+    enrollmentSplit := strings.Split(clean(root.Text()), " ")
+
+    //parse int out of enrollment string
+    num, _ := strconv.Atoi(enrollmentSplit[0])
+    size, enrolled = num, num
+    root = root.FindPrevSibling() //move onto the data we can parse from extract
+    str := root.Pointer.Data
+		i := strings.Index(str, "CRN")
+
+		//get name and cut it out (accounting for whitespace)
+		name = str[:i - 1]
+
+		//extract CRN which should be
+		crn = str[i + 5:i + 10]
+    return
 }
 
 //extract name, crn, enrollment data from string
@@ -211,13 +251,13 @@ func handleDateLoc(root soup.Root) []*Schedule {
 
 		// if we're dealing with a section with 2 schedules
 		for i, ptr := range parent.FindAll("b") {
-				schedData := ptr.FindNextSibling().Pointer.Data
+				schedData := ptr.FindNextSibling().Pointer.Data //add next schedule for each
 				prev, sch := makeSchedulePrev(schedData)
 				schedules[i].Location = emptyToTBA(prev)
 				if sch != nil {
 
 						// adds schedule to schedules
-						schedules = append(schedules, sched)
+						schedules = append(schedules, sch)
 				} else {
 
 						//if we have a TBA, the others will be TBA
