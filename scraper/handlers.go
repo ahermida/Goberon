@@ -8,7 +8,6 @@ import (
     "bytes"
     "errors"
     "strconv"
-    "fmt"
     "time"
 
     "github.com/anaskhan96/soup"
@@ -26,7 +25,7 @@ func makeSchedule(dateTimePtr string) *Schedule {
 
 		//treat TBA strings differently
 		if !tba && dtl > 26 {
-      
+
         // startTime and endTime will always come at the same index
 				startT, _ := time.Parse("03:04 pm", dateTime[dtl - 20: dtl - 12])
 				endT, _ := time.Parse("03:04 pm", dateTime[dtl - 8: dtl])
